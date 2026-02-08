@@ -9,7 +9,10 @@ type Props = {
   post: Todos;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
-  isTemp?: boolean;
+  isTemp?: [
+    boolean | undefined,
+    React.Dispatch<React.SetStateAction<boolean | undefined>>,
+  ];
 };
 
 export const TodoItem: React.FC<Props> = ({
