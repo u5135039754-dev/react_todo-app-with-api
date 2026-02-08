@@ -1,14 +1,15 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import '../../styles/todo.scss';
-import * as postService from '../../api/todos';
 import { Filter, Todo as Todos } from '../../types/Todo';
-import { useState } from 'react';
+import { TodoItem } from '../TodoItem/todoItem';
 
 type Props = {
   posts: Todos[];
+  tempTodo: Todos | null;
   filter: Filter | undefined;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
+  isTemp?: boolean;
 };
 
 export const Todo: React.FC<Props> = ({
@@ -16,6 +17,8 @@ export const Todo: React.FC<Props> = ({
   filter,
   setErrorMessage,
   setPosts,
+  tempTodo,
+  isTemp,
 }) => {
   const visibleTodos = posts.filter(todo => {
     if (filter === 'active') {
@@ -29,83 +32,58 @@ export const Todo: React.FC<Props> = ({
     return true;
   });
 
-  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
-
-  async function handleTodoStatus(id: number, checked: boolean) {
-    setErrorMessage('');
-    setUpdatingIds(prev => [...prev, id]);
-    try {
-      const current = posts.find(post => post.id === id);
-
-      if (!current) {
-        return;
-      }
-
-      const serverTodo = await postService.updateTodo(id, {
-        completed: checked,
-      });
-
-      setPosts(prev => prev.map(post => (post.id === id ? serverTodo : post)));
-    } catch (error) {
-      setErrorMessage('Unable to update todo');
-    } finally {
-      setUpdatingIds(prev => prev.filter(updatingId => updatingId !== id));
-    }
-  }
-
-  const [deletingTodoId, setDeletingTodoId] = useState<number | null>(null);
-  const onDelete = async (postId: number) => {
-    setDeletingTodoId(postId);
-    try {
-      await postService.deletePost(postId);
-      setPosts(currentPosts => currentPosts.filter(post => post.id !== postId));
-    } catch (error) {
-      setErrorMessage('Unable to delete todo');
-      setTimeout(() => setErrorMessage(''), 3000);
-    } finally {
-      setDeletingTodoId(null);
-    }
-  };
-
   return (
     <section className="todoapp__main" data-cy="TodoList">
       {visibleTodos.map(post => (
-        <div
-          data-cy="Todo"
+        <TodoItem
           key={post.id}
-          className={`todo ${post.completed ? 'completed' : ''}`}
-        >
+          post={post}
+          setErrorMessage={setErrorMessage}
+          setPosts={setPosts}
+          isTemp={isTemp}
+        />
+      ))}
+      {tempTodo && (
+        <TodoItem
+          key="temp"
+          post={tempTodo}
+          setErrorMessage={setErrorMessage}
+          setPosts={setPosts}
+          isTemp={isTemp}
+        />
+      )}
+      {/* Render tempTodo after the list */}
+      {tempTodo && (
+        <div data-cy="Todo" key={0} className="todo">
           <label className="todo__status-label">
             <input
               data-cy="TodoStatus"
               type="checkbox"
               className="todo__status"
-              onChange={event =>
-                handleTodoStatus(post.id, event.target.checked)
-              }
-              checked={post.completed}
-              disabled={updatingIds.includes(post.id)}
+              checked={tempTodo.completed}
+              disabled
             />
           </label>
           <span data-cy="TodoTitle" className="todo__title">
-            {post.title}
+            {tempTodo.title}
           </span>
           <button
             type="button"
             aria-label="Delete todo"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => onDelete(post.id)}
-            disabled={deletingTodoId === post.id}
+            disabled
           >
             ×
           </button>
-          <div data-cy="TodoLoader" className="modal overlay">
-            <div className="modal-background has-background-white-ter" />
-            <div className="loader" />
-          </div>
+          {tempTodo && (
+            <div data-cy="TodoLoader" className="modal overlay">
+              <div className="modal-background has-background-white-ter" />
+              <div className="loader" />
+            </div>
+          )}
         </div>
-      ))}
+      )}
     </section>
   );
 };

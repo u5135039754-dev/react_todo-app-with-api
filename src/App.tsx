@@ -8,12 +8,14 @@ import { Filter as Filters, Todo as Todos } from './types/Todo';
 import { TodoApp } from './components/TodoApp/todoapp';
 import { Todo } from './components/Todo/todo';
 import { Filter } from './components/Filter/filter';
-import { Index } from './components/index/index';
+import { ErrorNotification } from './components/index/index';
 
 export const App: React.FC = () => {
   const [posts, setPosts] = useState<Todos[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<Filters>();
+  const [filter, setFilter] = useState<Filters>(Filters.all);
+  const [tempTodo, setTempTodo] = useState<Todos | null>(null);
+  const isTemp = useState<boolean | undefined>(undefined);
 
   const [errorMessage, setErrorMessage] = useState('');
   const hasTodos = posts.length > 0;
@@ -41,6 +43,7 @@ export const App: React.FC = () => {
           setPosts={setPosts}
           setErrorMessage={setErrorMessage}
           loading={loading}
+          setTempTodo={setTempTodo}
         />
 
         {hasTodos && (
@@ -50,6 +53,8 @@ export const App: React.FC = () => {
               setErrorMessage={setErrorMessage}
               setPosts={setPosts}
               filter={filter}
+              tempTodo={tempTodo}
+              isTemp={isTemp}
             />
             <Filter
               setErrorMessage={setErrorMessage}
@@ -61,14 +66,12 @@ export const App: React.FC = () => {
           </>
         )}
       </div>
-      {!hasTodos && (
-        <Index
-          errorMessage={errorMessage}
-          setLoading={setLoading}
-          setErrorMessage={setErrorMessage}
-          posts={posts}
-        />
-      )}
+      <ErrorNotification
+        errorMessage={errorMessage}
+        setLoading={setLoading}
+        setErrorMessage={setErrorMessage}
+        posts={posts}
+      />
     </div>
   );
 };

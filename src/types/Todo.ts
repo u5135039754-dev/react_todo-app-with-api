@@ -9,3 +9,8 @@ export enum Filter {
   active = 'active',
   completed = 'completed',
 }
+
+export type ItemType = {
+  id: string | number;
+  checked: boolean;
+};

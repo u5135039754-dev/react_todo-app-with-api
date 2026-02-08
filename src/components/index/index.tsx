@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import '../../styles/index.scss';
 import { Todo } from '../../types/Todo';
+import classNames from 'classnames';
 
 type Props = {
   posts: Todo[];
@@ -9,7 +10,7 @@ type Props = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const Index: React.FC<Props> = ({
+export const ErrorNotification: React.FC<Props> = ({
   setErrorMessage,
   errorMessage,
   setLoading,
@@ -27,12 +28,12 @@ export const Index: React.FC<Props> = ({
         clearTimeout(hideErrorTimer.current);
       }
     };
-  }, [setLoading]);
+  }, []);
 
   return (
     <div
       data-cy="ErrorNotification"
-      className={`notification is-danger is-light has-text-weight-normal ${!errorMessage ? 'hidden' : ''}`}
+      className={`notification is-danger is-light has-text-weight-normal${!errorMessage ? ' hidden' : ''}`}
     >
       <button
         data-cy="HideErrorButton"
@@ -41,7 +42,9 @@ export const Index: React.FC<Props> = ({
         className="delete"
       />
       <div
-        className={`notification is-danger is-light has-text-weight-normal ${errorMessage ? '' : 'hidden'}`}
+        className={classNames('notification is-danger is-light', {
+          hidden: !errorMessage,
+        })}
       >
         {errorMessage}
       </div>
