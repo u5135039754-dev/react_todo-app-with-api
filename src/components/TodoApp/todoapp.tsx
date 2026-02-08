@@ -2,7 +2,7 @@ import '../../styles/todoapp.scss';
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import * as postService from '../../api/todos';
 import { USER_ID } from '../../api/todos';
-import { ItemType, Todo } from '../../types/Todo';
+import { Todo } from '../../types/Todo';
 
 type Props = {
   posts: Todo[];
@@ -23,24 +23,32 @@ export const TodoApp: React.FC<Props> = ({
   const isTitleEmpty = title.trim() === '';
   const allCompleted = posts.length > 0 && posts.every(post => post.completed);
   const hasPosts = posts.length > 0;
-  const [items, setItems] = useState<ItemType[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  function handleToggleAll() {
-    const allChecked = items.every(i => i.checked);
-    const newItems = items.map(i => ({ ...i, checked: !allChecked }));
+  const handleToggleAll = async () => {
+    const shouldComplete = !posts.every(todo => todo.completed);
+    const todosToUpdate = posts.filter(
+      todo => todo.completed !== shouldComplete,
+    );
 
-    if (items.length === 0) {
-      return;
+    try {
+      await Promise.all(
+        todosToUpdate.map(todo =>
+          postService.updateTodo(todo.id, { completed: shouldComplete }),
+        ),
+      );
+      setPosts(post =>
+        post.map(todo =>
+          todosToUpdate.some(t => t.id === todo.id)
+            ? { ...todo, completed: shouldComplete }
+            : todo,
+        ),
+      );
+    } catch {
+      setErrorMessage('Unable to update a todo');
     }
-
-    if (items.every(i => i.checked === !!items.every(item => item.checked))) {
-      return;
-    }
-
-    setItems(newItems);
-  }
+  };
 
   useEffect(() => {
     inputRef.current?.focus();

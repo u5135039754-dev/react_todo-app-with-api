@@ -53,6 +53,18 @@ export const TodoItem: React.FC<Props> = ({
     }
   };
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(post.title);
+  const handleEdit = async () => {
+    if (editedTitle.trim() === '') {
+      // call delete
+    } else if (editedTitle !== post.title) {
+      // call updateTodo API
+    }
+
+    setIsEditing(false);
+  };
+
   return (
     <div
       data-cy="Todo"
@@ -68,6 +80,26 @@ export const TodoItem: React.FC<Props> = ({
           checked={post.completed}
           disabled={updatingIds.includes(post.id)}
         />
+
+        {isEditing ? (
+          <input
+            value={editedTitle}
+            onChange={e => setEditedTitle(e.target.value)}
+            onBlur={handleEdit}
+            onKeyUp={e => {
+              if (e.key === 'Enter') {
+                handleEdit();
+              }
+
+              if (e.key === 'Escape') {
+                setIsEditing(false);
+              }
+            }}
+            autoFocus
+          />
+        ) : (
+          <span onDoubleClick={() => setIsEditing(true)}>{post.title}</span>
+        )}
       </label>
       <span data-cy="TodoTitle" className="todo__title">
         {post.title}
