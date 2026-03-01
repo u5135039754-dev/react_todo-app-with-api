@@ -8,17 +8,18 @@ import { Filter as Filters, Todo as Todos } from './types/Todo';
 import { TodoApp } from './components/TodoApp/todoapp';
 import { Todo } from './components/Todo/todo';
 import { Filter } from './components/Filter/filter';
-import { ErrorNotification } from './components/index/index';
 
 export const App: React.FC = () => {
   const [posts, setPosts] = useState<Todos[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<Filters>(Filters.all);
-  const [tempTodo, setTempTodo] = useState<Todos | null>(null);
-  const isTemp = useState<boolean | undefined>(undefined);
+  const [todo] = useState<Todos>([]);
 
   const [errorMessage, setErrorMessage] = useState('');
   const hasTodos = posts.length > 0;
+
+  const [tempTodo, setTempTodo] = useState<Todos | null>(null);
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
 
   useEffect(() => {
     setErrorMessage('');
@@ -28,6 +29,14 @@ export const App: React.FC = () => {
       .catch(() => setErrorMessage('Unable to load todos'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(''), 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -53,8 +62,11 @@ export const App: React.FC = () => {
               setErrorMessage={setErrorMessage}
               setPosts={setPosts}
               filter={filter}
+              updatingIds={updatingIds}
+              setUpdatingIds={setUpdatingIds}
               tempTodo={tempTodo}
-              isTemp={isTemp}
+              loading={loading}
+              todo={todo}
             />
             <Filter
               setErrorMessage={setErrorMessage}
@@ -66,12 +78,22 @@ export const App: React.FC = () => {
           </>
         )}
       </div>
-      <ErrorNotification
-        errorMessage={errorMessage}
-        setLoading={setLoading}
-        setErrorMessage={setErrorMessage}
-        posts={posts}
-      />
+      <div
+        data-cy="ErrorNotification"
+        className={`notification is-danger is-light has-text-weight-normal ${!errorMessage ? 'hidden' : ''}`}
+      >
+        <button
+          data-cy="HideErrorButton"
+          type="button"
+          onClick={() => setErrorMessage('')}
+          className="delete"
+        />
+        <div
+          className={`notification is-danger is-light has-text-weight-normal ${errorMessage ? '' : 'hidden'}`}
+        >
+          {errorMessage}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import '../../styles/index.scss';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
@@ -13,27 +13,24 @@ type Props = {
 export const ErrorNotification: React.FC<Props> = ({
   setErrorMessage,
   errorMessage,
-  setLoading,
 }) => {
-  const hideErrorTimer = useRef<number | null>(null);
-
-  hideErrorTimer.current = window.setTimeout(() => setErrorMessage(''), 3000);
-
   useEffect(() => {
-    const delayTimer = setTimeout(() => setLoading(true), 500);
+    if (!errorMessage) {
+      return;
+    }
 
-    return () => {
-      clearTimeout(delayTimer);
-      if (hideErrorTimer.current) {
-        clearTimeout(hideErrorTimer.current);
-      }
-    };
-  }, []);
+    const timer = setTimeout(() => setErrorMessage(''), 3000);
+
+    return () => clearTimeout(timer);
+  }, [errorMessage, setErrorMessage]);
 
   return (
     <div
       data-cy="ErrorNotification"
-      className={`notification is-danger is-light has-text-weight-normal${!errorMessage ? ' hidden' : ''}`}
+      className={classNames(
+        'notification is-danger is-light has-text-weight-normal',
+        { hidden: !errorMessage },
+      )}
     >
       <button
         data-cy="HideErrorButton"
@@ -41,13 +38,7 @@ export const ErrorNotification: React.FC<Props> = ({
         onClick={() => setErrorMessage('')}
         className="delete"
       />
-      <div
-        className={classNames('notification is-danger is-light', {
-          hidden: !errorMessage,
-        })}
-      >
-        {errorMessage}
-      </div>
+      {errorMessage}
     </div>
   );
 };

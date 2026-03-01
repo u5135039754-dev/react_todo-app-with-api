@@ -1,61 +1,46 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
+import React from 'react';
 import '../../styles/todo.scss';
 import { Filter, Todo as Todos } from '../../types/Todo';
 import { TodoItem } from '../TodoItem/todoItem';
+import classNames from 'classnames';
 
 type Props = {
   posts: Todos[];
   tempTodo: Todos | null;
+  todo: Todos;
   filter: Filter | undefined;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
-  isTemp?: [
-    boolean | undefined,
-    React.Dispatch<React.SetStateAction<boolean | undefined>>,
-  ];
+  loading: boolean;
+  updatingIds: number[];
+  setUpdatingIds: React.Dispatch<React.SetStateAction<number[]>>;
 };
 
 export const Todo: React.FC<Props> = ({
   posts,
-  filter,
+  todo,
   setErrorMessage,
   setPosts,
+  filter,
   tempTodo,
-  isTemp,
+  loading,
+  updatingIds,
+  setUpdatingIds,
 }) => {
-  const visibleTodos = posts.filter(todo => {
-    if (filter === 'active') {
-      return !todo.completed;
-    }
-
-    if (filter === 'completed') {
-      return todo.completed;
-    }
-
-    return true;
-  });
-
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      {visibleTodos.map(post => (
-        <TodoItem
-          key={post.id}
-          post={post}
-          setErrorMessage={setErrorMessage}
-          setPosts={setPosts}
-          isTemp={isTemp}
-        />
-      ))}
-      {tempTodo && (
-        <TodoItem
-          key="temp"
-          post={tempTodo}
-          setErrorMessage={setErrorMessage}
-          setPosts={setPosts}
-          isTemp={isTemp}
-        />
-      )}
-      {/* Render tempTodo after the list */}
+      <TodoItem
+        key="temp"
+        posts={posts}
+        setErrorMessage={setErrorMessage}
+        setPosts={setPosts}
+        filter={filter}
+        loading={loading}
+        setUpdatingIds={setUpdatingIds}
+        updatingIds={updatingIds}
+        todo={todo}
+      />
       {tempTodo && (
         <div data-cy="Todo" key={0} className="todo">
           <label className="todo__status-label">
@@ -79,12 +64,15 @@ export const Todo: React.FC<Props> = ({
           >
             ×
           </button>
-          {tempTodo && (
-            <div data-cy="TodoLoader" className="modal overlay">
-              <div className="modal-background has-background-white-ter" />
-              <div className="loader" />
-            </div>
-          )}
+          <div
+            data-cy="TodoLoader"
+            className={classNames('modal overlay', {
+              'is-active': updatingIds.includes(todo.id),
+            })}
+          >
+            <div className="modal-background has-background-white-ter" />
+            <div className="loader" />
+          </div>
         </div>
       )}
     </section>

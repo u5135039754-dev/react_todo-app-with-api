@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import * as postService from '../../api/todos';
 import { USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
+import React from 'react';
 
 type Props = {
   posts: Todo[];
@@ -20,115 +21,83 @@ export const TodoApp: React.FC<Props> = ({
   setTempTodo,
 }) => {
   const [title, setTitle] = useState('');
-  const isTitleEmpty = title.trim() === '';
+  // const isTitleEmpty = title.trim() === '';
   const allCompleted = posts.length > 0 && posts.every(post => post.completed);
   const hasPosts = posts.length > 0;
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleToggleAll = async () => {
-    const shouldComplete = !posts.every(todo => todo.completed);
-    const todosToUpdate = posts.filter(
-      todo => todo.completed !== shouldComplete,
-    );
-
-    try {
-      await Promise.all(
-        todosToUpdate.map(todo =>
-          postService.updateTodo(todo.id, { completed: shouldComplete }),
-        ),
-      );
-      setPosts(post =>
-        post.map(todo =>
-          todosToUpdate.some(t => t.id === todo.id)
-            ? { ...todo, completed: shouldComplete }
-            : todo,
-        ),
-      );
-    } catch {
-      setErrorMessage('Unable to update a todo');
-    }
-  };
+  const prevTodosCount = useRef(posts.length);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (posts.length < prevTodosCount.current && inputRef.current) {
+      inputRef.current.focus();
+    }
+
+    prevTodosCount.current = posts.length;
+  }, [posts]);
+
+  const [isAdding, setIsAdding] = useState(false);
 
   async function handleAddPost(event: React.FormEvent) {
-    setIsCreating(true);
     event.preventDefault();
     const value = title.trim();
-    const newTempTodo: Todo = {
-      id: -1,
-      title: value,
-      completed: false,
-    };
-
-    setTempTodo(newTempTodo);
 
     if (!value) {
       setErrorMessage('Title should not be empty');
-      setIsCreating(false);
 
       return;
     }
 
     setErrorMessage('');
-
-    setTempTodo(newTempTodo);
-    setPosts(current => [...current, newTempTodo]);
+    setIsAdding(true);
+    setTempTodo({
+      id: 0,
+      title: value,
+      completed: false,
+      userId: USER_ID,
+    });
     try {
       const newTodo = await postService.createTodo(value, USER_ID);
 
-      setPosts(current =>
-        current.map(todo => (todo.id === -1 ? newTodo : todo)),
-      );
-      setTempTodo(null);
-      setTitle(''); // <-- Only clear on success
+      setPosts(current => [...current, newTodo]);
+      setTitle('');
     } catch {
-      setPosts(current => current.filter(todo => todo.id !== -1));
-      setTempTodo(null);
       setErrorMessage('Unable to add a todo');
-      // Do NOT clear title here
     } finally {
-      setIsCreating(false);
+      setIsAdding(false);
       setTempTodo(null);
-      inputRef.current?.focus();
     }
   }
 
+  useEffect(() => {
+    if (!loading && !isAdding) {
+      inputRef.current?.focus();
+    }
+  }, [loading, isAdding]);
+
   return (
     <header className="todoapp__header">
-      {hasPosts && allCompleted ? (
-        hasPosts && !allCompleted ? (
-          <button
-            type="button"
-            disabled={isTitleEmpty || loading}
-            onClick={handleToggleAll}
-            className="todoapp__toggle-all"
-            data-cy="ToggleAllButton"
-          />
-        ) : (
-          <button
-            type="button"
-            disabled={isTitleEmpty || loading}
-            onClick={handleToggleAll}
-            className="todoapp__toggle-all active"
-            data-cy="ToggleAllButton"
-          />
-        )
-      ) : null}
+      {hasPosts && (
+        <button
+          type="button"
+          disabled={loading}
+          onClick={handleAddPost}
+          className={`todoapp__toggle-all${!allCompleted ? ' active' : ''}`}
+          data-cy="ToggleAllButton"
+        />
+      )}
 
       <form onSubmit={handleAddPost}>
         <input
           data-cy="NewTodoField"
           type="text"
-          disabled={isCreating}
-          value={title}
+          ref={inputRef}
+          value={title || ''}
           onChange={event => setTitle(event.target.value)}
+          disabled={isAdding || loading}
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
-          ref={inputRef}
+
         />
       </form>
     </header>
