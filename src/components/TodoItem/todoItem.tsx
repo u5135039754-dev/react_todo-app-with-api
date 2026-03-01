@@ -134,8 +134,9 @@ export const TodoItem: React.FC<Props> = ({
             />
           </label>
 
-          {isEditing && isUpdating ? (
+          {isEditing ? (
             <input
+              data-cy="TodoTitleField"
               value={editedTitle}
               onChange={e => setEditedTitle(e.target.value)}
               onBlur={handleEdit}
@@ -151,7 +152,11 @@ export const TodoItem: React.FC<Props> = ({
               autoFocus
             />
           ) : (
-            <span data-cy="TodoTitle" className="todo__title">
+            <span
+              data-cy="TodoTitle"
+              onDoubleClick={() => setIsEditing(true)}
+              className="todo__title"
+            >
               {post.title}
             </span>
           )}
@@ -179,7 +184,7 @@ export const TodoItem: React.FC<Props> = ({
           <div
             data-cy="TodoLoader"
             className={classNames('modal overlay', {
-              'is-active': !updatingIds,
+              'is-active': updatingIds.includes(post.id),
             })}
           >
             <div className="modal-background has-background-white-ter" />

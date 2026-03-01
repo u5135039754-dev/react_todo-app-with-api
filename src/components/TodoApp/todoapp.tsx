@@ -69,6 +69,28 @@ export const TodoApp: React.FC<Props> = ({
     }
   }
 
+  const handleToggleAll = async () => {
+    const shouldCompleteAll = !posts.every(todo => todo.completed);
+    const updatePromises = posts
+      .filter(todo => todo.completed !== shouldCompleteAll)
+      .map(todo =>
+        postService.updateTodo(todo.id, { completed: shouldCompleteAll }),
+      );
+
+    try {
+      const updatedTodos = await Promise.all(updatePromises);
+
+      setPosts(post =>
+        post.map(
+          todos =>
+            updatedTodos.find(updated => updated.id === todos.id) || todos,
+        ),
+      );
+    } catch {
+      setErrorMessage('Unable to update a todo');
+    }
+  };
+
   useEffect(() => {
     if (!loading && !isAdding) {
       inputRef.current?.focus();
@@ -81,8 +103,8 @@ export const TodoApp: React.FC<Props> = ({
         <button
           type="button"
           disabled={loading}
-          onClick={handleAddPost}
-          className={`todoapp__toggle-all${!allCompleted ? ' active' : ''}`}
+          onClick={handleToggleAll}
+          className={`todoapp__toggle-all${allCompleted ? ' active' : ''}`}
           data-cy="ToggleAllButton"
         />
       )}
@@ -97,7 +119,6 @@ export const TodoApp: React.FC<Props> = ({
           disabled={isAdding || loading}
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
-
         />
       </form>
     </header>
