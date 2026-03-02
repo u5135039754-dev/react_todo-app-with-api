@@ -74,7 +74,7 @@ export const TodoItem: React.FC<Props> = ({
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(todo.title);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [, setIsUpdating] = useState(false);
   const handleEdit = async () => {
     const trimmed = editedTitle.trim();
 
@@ -99,13 +99,10 @@ export const TodoItem: React.FC<Props> = ({
       });
 
       setPosts(post =>
-        post.map(todos => (todos.id === todos.id ? updated : todos)),
+        post.map(todos => (todos.id === todo.id ? updated : todos)),
       );
     } catch {
-      setErrorMessage('Unable to delete a todo');
-    } finally {
-      setIsUpdating(false);
-      setIsEditing(false);
+      setErrorMessage('Unable to update a todo');
     }
   };
 
