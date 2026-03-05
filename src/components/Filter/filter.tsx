@@ -10,6 +10,7 @@ type Props = {
   setPosts: Dispatch<SetStateAction<Todo[]>>;
   setFilter: React.Dispatch<React.SetStateAction<Filters>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const items: Filters[] = [Filters.all, Filters.active, Filters.completed];
@@ -19,11 +20,13 @@ export const Filter: React.FC<Props> = ({
   setPosts,
   setFilter,
   setErrorMessage,
+  setLoading,
   filter,
 }) => {
   const anyCompleted = posts.some(post => post.completed);
   const todosCounter = posts.filter(post => !post.completed);
   const clearCompleted = async () => {
+    setLoading(true);
     const completedTodos = posts.filter(todo => todo.completed);
     const results = await Promise.allSettled(
       completedTodos.map(todo => postService.deletePost(todo.id)),
@@ -41,6 +44,8 @@ export const Filter: React.FC<Props> = ({
     if (results.some(result => result.status === 'rejected')) {
       setErrorMessage('Unable to delete a todo');
     }
+
+    setLoading(false);
   };
 
   const handleFilter =

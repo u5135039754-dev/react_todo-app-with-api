@@ -48,6 +48,7 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <TodoApp
+          setLoading={setLoading}
           posts={posts}
           setPosts={setPosts}
           setErrorMessage={setErrorMessage}
@@ -67,6 +68,7 @@ export const App: React.FC = () => {
               tempTodo={tempTodo}
               loading={loading}
               todo={todo}
+              setLoading={setLoading}
             />
             <Filter
               setErrorMessage={setErrorMessage}
@@ -74,6 +76,7 @@ export const App: React.FC = () => {
               filter={filter}
               setPosts={setPosts}
               setFilter={setFilter}
+              setLoading={setLoading}
             />
           </>
         )}

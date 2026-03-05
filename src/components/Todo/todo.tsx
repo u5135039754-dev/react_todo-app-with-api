@@ -15,6 +15,7 @@ type Props = {
   loading: boolean;
   updatingIds: number[];
   setUpdatingIds: React.Dispatch<React.SetStateAction<number[]>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const Todo: React.FC<Props> = ({
@@ -27,6 +28,7 @@ export const Todo: React.FC<Props> = ({
   loading,
   updatingIds,
   setUpdatingIds,
+  setLoading,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -40,6 +42,7 @@ export const Todo: React.FC<Props> = ({
         setUpdatingIds={setUpdatingIds}
         updatingIds={updatingIds}
         todo={todo}
+        setLoading={setLoading}
       />
       {tempTodo && (
         <div data-cy="Todo" key={0} className="todo">

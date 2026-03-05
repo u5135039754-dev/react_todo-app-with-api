@@ -9,6 +9,7 @@ type Props = {
   posts: Todo[];
   setPosts: Dispatch<SetStateAction<Todo[]>>;
   loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
@@ -19,6 +20,7 @@ export const TodoApp: React.FC<Props> = ({
   loading,
   setErrorMessage,
   setTempTodo,
+  setLoading,
 }) => {
   const [title, setTitle] = useState('');
   // const isTitleEmpty = title.trim() === '';
@@ -77,6 +79,8 @@ export const TodoApp: React.FC<Props> = ({
         postService.updateTodo(todo.id, { completed: shouldCompleteAll }),
       );
 
+    setLoading(true);
+
     try {
       const updatedTodos = await Promise.all(updatePromises);
 
@@ -88,6 +92,8 @@ export const TodoApp: React.FC<Props> = ({
       );
     } catch {
       setErrorMessage('Unable to update a todo');
+    } finally {
+      setLoading(false);
     }
   };
 
