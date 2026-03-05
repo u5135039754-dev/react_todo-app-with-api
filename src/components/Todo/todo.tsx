@@ -4,30 +4,20 @@ import '../../styles/todo.scss';
 import { Filter, Todo as Todos } from '../../types/Todo';
 import { TodoItem } from '../TodoItem/todoItem';
 import classNames from 'classnames';
-
 type Props = {
   posts: Todos[];
   tempTodo: Todos | null;
-  todo: Todos;
   filter: Filter | undefined;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
-  loading: boolean;
-  updatingIds: number[];
-  setUpdatingIds: React.Dispatch<React.SetStateAction<number[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
 export const Todo: React.FC<Props> = ({
   posts,
-  todo,
   setErrorMessage,
   setPosts,
   filter,
   tempTodo,
-  loading,
-  updatingIds,
-  setUpdatingIds,
   setLoading,
 }) => {
   return (
@@ -38,10 +28,6 @@ export const Todo: React.FC<Props> = ({
         setErrorMessage={setErrorMessage}
         setPosts={setPosts}
         filter={filter}
-        loading={loading}
-        setUpdatingIds={setUpdatingIds}
-        updatingIds={updatingIds}
-        todo={todo}
         setLoading={setLoading}
       />
       {tempTodo && (
