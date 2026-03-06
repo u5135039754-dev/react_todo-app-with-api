@@ -10,6 +10,8 @@ type Props = {
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
   onDelete: (postId: number) => Promise<void>;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsUpdating: (value: boolean) => void;
+  isUpdating: boolean;
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -17,10 +19,11 @@ export const TodoList: React.FC<Props> = ({
   setErrorMessage,
   setPosts,
   onDelete,
+  setIsUpdating,
   setIsEditing,
+  isUpdating,
 }) => {
   const [editedTitle, setEditedTitle] = useState(todo.title);
-  const [isUpdating, setIsUpdating] = useState(false);
   const handleEdit = async () => {
     if (isUpdating) {
       return;
@@ -29,9 +32,11 @@ export const TodoList: React.FC<Props> = ({
     const trimmed = editedTitle.trim();
 
     if (trimmed === '') {
-      await onDelete(todo.id);
-      setIsEditing(false);
-      setErrorMessage('');
+      const success = await onDelete(todo.id);
+
+      if (success) {
+        setIsEditing(false);
+      }
 
       return;
     }
@@ -78,12 +83,13 @@ export const TodoList: React.FC<Props> = ({
         }}
         autoFocus
       />
-      {isUpdating && (
-        <div data-cy="TodoLoader" className={classNames('modal overlay')}>
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
-      )}
+      <div
+        data-cy="TodoLoader"
+        className={classNames('modal overlay', { 'is-active': isUpdating })}
+      >
+        <div className="modal-background has-background-white-ter" />
+        <div className="loader" />
+      </div>
     </>
   );
 };

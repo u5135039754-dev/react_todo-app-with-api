@@ -10,6 +10,8 @@ export interface TaskItemProps {
   onDelete: (postId: number) => Promise<void>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todo[]>>;
+  isUpdating: boolean;
+  setIsUpdating: (value: boolean) => void;
 }
 export const TaskItem: React.FC<TaskItemProps> = ({
   post,
@@ -18,8 +20,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onDelete,
   setErrorMessage,
   setPosts,
+  isUpdating,
+  setIsUpdating,
 }) => {
-  const isLoading = false;
+  const isLoading = deletingTodoId === post.id || isUpdating;
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -45,6 +49,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           setErrorMessage={setErrorMessage}
           setPosts={setPosts}
           setIsEditing={setIsEditing}
+          isUpdating={isUpdating}
+          setIsUpdating={setIsUpdating}
         />
       ) : (
         <span
@@ -55,35 +61,25 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           {post.title}
         </span>
       )}
-      <button
-        type="button"
-        aria-label="Delete todo"
-        className="todo__remove"
-        data-cy="TodoDelete"
-        onClick={() => onDelete(post.id)}
-        disabled={deletingTodoId === post.id && isEditing}
-      >
-        ×
-      </button>
-      {deletingTodoId === post.id && (
-        <div data-cy="TodoLoader" className={classNames('modal overlay')}>
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
+      {!isEditing && (
+        <button
+          type="button"
+          aria-label="Delete todo"
+          className="todo__remove"
+          data-cy="TodoDelete"
+          onClick={() => onDelete(post.id)}
+          disabled={deletingTodoId === post.id && isEditing}
+        >
+          ×
+        </button>
       )}
-      <div data-cy="TodoLoader" className={classNames('modal overlay')}>
+      <div
+        data-cy="TodoLoader"
+        className={classNames('modal overlay', { 'is-active': isLoading })}
+      >
         <div className="modal-background has-background-white-ter" />
         <div className="loader" />
       </div>
-      {isLoading && (
-        <div
-          data-cy="TodoLoader"
-          className={classNames('modal overlay is-active')}
-        >
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
-      )}
     </div>
   );
 };

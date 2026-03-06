@@ -5,6 +5,7 @@ import { Filter, Todo as Todos } from '../../types/Todo';
 import { useState } from 'react';
 import React from 'react';
 import { TaskItem } from '../TaskItem/TaskItem';
+
 type Props = {
   posts: Todos[];
   filter: Filter | undefined;
@@ -12,12 +13,24 @@ type Props = {
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
 export const TodoItem: React.FC<Props> = ({
   posts,
   filter,
   setErrorMessage,
   setPosts,
 }) => {
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
+
+  const setIsUpdatingFor = (id: number, value: boolean) =>
+    setUpdatingIds(prev => {
+      if (value) {
+        return prev.includes(id) ? prev : [...prev, id];
+      }
+
+      return prev.filter(x => x !== id);
+    });
+
   const visibleTodos = posts.filter(todos => {
     if (filter === 'completed') {
       return todos.completed;
@@ -35,7 +48,7 @@ export const TodoItem: React.FC<Props> = ({
     setDeletingTodoId(postId);
     try {
       await postService.deletePost(postId);
-      setPosts(currentPosts => currentPosts.filter(pos => pos.id !== postId));
+      setPosts(currentPosts => currentPosts.filter(post => post.id !== postId));
     } catch (error) {
       setErrorMessage('Unable to delete a todo');
       setTimeout(() => setErrorMessage(''), 3000);
@@ -46,6 +59,8 @@ export const TodoItem: React.FC<Props> = ({
 
   async function handleTodoStatus(id: number, checked: boolean) {
     setErrorMessage('');
+    setIsUpdatingFor(id, true);
+
     try {
       const current = posts.find(post => post.id === id);
 
@@ -57,9 +72,11 @@ export const TodoItem: React.FC<Props> = ({
         completed: checked,
       });
 
-      setPosts(prev => prev.map(post => (post.id === id ? serverTodo : post)));
-    } catch (error) {
+      setPosts(prev => prev.map(p => (p.id === id ? serverTodo : p)));
+    } catch {
       setErrorMessage('Unable to update a todo');
+    } finally {
+      setIsUpdatingFor(id, false);
     }
   }
 
@@ -74,6 +91,8 @@ export const TodoItem: React.FC<Props> = ({
           deletingTodoId={deletingTodoId}
           setErrorMessage={setErrorMessage}
           setPosts={setPosts}
+          isUpdating={updatingIds.includes(post.id)}
+          setIsUpdating={(value: boolean) => setIsUpdatingFor(post.id, value)}
         />
       ))}
     </div>

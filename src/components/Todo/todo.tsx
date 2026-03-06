@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React from 'react';
+import React, { useState } from 'react';
 import '../../styles/todo.scss';
 import { Filter, Todo as Todos } from '../../types/Todo';
 import { TodoItem } from '../TodoItem/todoItem';
@@ -20,6 +20,8 @@ export const Todo: React.FC<Props> = ({
   tempTodo,
   setLoading,
 }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+
   return (
     <section className="todoapp__main" data-cy="TodoList">
       <TodoItem
@@ -29,6 +31,8 @@ export const Todo: React.FC<Props> = ({
         setPosts={setPosts}
         filter={filter}
         setLoading={setLoading}
+        isUpdating={isUpdating}
+        setIsUpdating={setIsUpdating}
       />
       {tempTodo && (
         <div data-cy="Todo" key={0} className="todo">
