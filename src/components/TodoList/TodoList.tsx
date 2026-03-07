@@ -65,6 +65,8 @@ export const TodoList: React.FC<Props> = ({
       <input
         data-cy="TodoTitleField"
         value={editedTitle}
+        type="text"
+        className="todo__title-field"
         onChange={event => setEditedTitle(event.target.value)}
         onBlur={() => {
           if (!isUpdating) {

@@ -4,6 +4,7 @@ import * as postService from '../../api/todos';
 import { USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
 import React from 'react';
+import classNames from 'classnames';
 
 type Props = {
   posts: Todo[];
@@ -12,6 +13,9 @@ type Props = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
+  setIsUpdatingFor: (id: number, value: boolean) => void;
+  updatingIds: number[];
+  isUpdating: boolean;
 };
 
 export const TodoApp: React.FC<Props> = ({
@@ -20,7 +24,8 @@ export const TodoApp: React.FC<Props> = ({
   loading,
   setErrorMessage,
   setTempTodo,
-  setLoading,
+  setIsUpdatingFor,
+  isUpdating,
 }) => {
   const [title, setTitle] = useState('');
   // const isTitleEmpty = title.trim() === '';
@@ -71,29 +76,29 @@ export const TodoApp: React.FC<Props> = ({
     }
   }
 
-  const handleToggleAll = async () => {
+  const handleToggleAll = async (id: number) => {
     const shouldCompleteAll = !posts.every(todo => todo.completed);
-    const updatePromises = posts
+    const idsToUpdate = posts
       .filter(todo => todo.completed !== shouldCompleteAll)
-      .map(todo =>
-        postService.updateTodo(todo.id, { completed: shouldCompleteAll }),
-      );
+      .map(todo => todo.id);
 
-    setLoading(true);
-
+    setIsUpdatingFor(id, true);
     try {
-      const updatedTodos = await Promise.all(updatePromises);
+      const updatedTodos = await Promise.all(
+        idsToUpdate.map(i =>
+          postService.updateTodo(i, { completed: shouldCompleteAll }),
+        ),
+      );
 
       setPosts(post =>
         post.map(
-          todos =>
-            updatedTodos.find(updated => updated.id === todos.id) || todos,
+          todo => updatedTodos.find(updated => updated.id === todo.id) || todo,
         ),
       );
     } catch {
       setErrorMessage('Unable to update a todo');
     } finally {
-      setLoading(false);
+      setIsUpdatingFor(id, false);
     }
   };
 
@@ -104,29 +109,40 @@ export const TodoApp: React.FC<Props> = ({
   }, [loading, isAdding]);
 
   return (
-    <header className="todoapp__header">
-      {hasPosts && (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={handleToggleAll}
-          className={`todoapp__toggle-all${allCompleted ? ' active' : ''}`}
-          data-cy="ToggleAllButton"
-        />
-      )}
+    <>
+      <header className="todoapp__header">
+        {hasPosts && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => handleToggleAll}
+            className={`todoapp__toggle-all${allCompleted ? ' active' : ''}`}
+            data-cy="ToggleAllButton"
+          />
+        )}
 
-      <form onSubmit={handleAddPost}>
-        <input
-          data-cy="NewTodoField"
-          type="text"
-          ref={inputRef}
-          value={title || ''}
-          onChange={event => setTitle(event.target.value)}
-          disabled={isAdding || loading}
-          className="todoapp__new-todo"
-          placeholder="What needs to be done?"
-        />
-      </form>
-    </header>
+        <form onSubmit={handleAddPost}>
+          <input
+            data-cy="NewTodoField"
+            type="text"
+            ref={inputRef}
+            value={title || ''}
+            onChange={event => setTitle(event.target.value)}
+            disabled={isAdding || loading}
+            className="todoapp__new-todo"
+            placeholder="What needs to be done?"
+          />
+        </form>
+        <div
+          data-cy="TodoLoader"
+          className={classNames('modal overlay', {
+            'is-active': isUpdating,
+          })}
+        >
+          <div className="modal-background has-background-white-ter" />
+          <div className="loader" />
+        </div>
+      </header>
+    </>
   );
 };

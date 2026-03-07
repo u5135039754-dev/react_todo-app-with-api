@@ -14,6 +14,17 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const hasTodos = posts.length > 0;
   const [tempTodo, setTempTodo] = useState<Todos | null>(null);
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const setIsUpdatingFor = (id: number, value: boolean) =>
+    setUpdatingIds(prev => {
+      if (value) {
+        return prev.includes(id) ? prev : [...prev, id];
+      }
+
+      return prev.filter(x => x !== id);
+    });
 
   useEffect(() => {
     setErrorMessage('');
@@ -39,12 +50,15 @@ export const App: React.FC = () => {
       <h1 className="todoapp__title">todos</h1>
       <div className="todoapp__content">
         <TodoApp
+          setIsUpdatingFor={setIsUpdatingFor}
+          updatingIds={updatingIds}
           setLoading={setLoading}
           posts={posts}
           setPosts={setPosts}
           setErrorMessage={setErrorMessage}
           loading={loading}
           setTempTodo={setTempTodo}
+          isUpdating={isUpdating}
         />
         {hasTodos && (
           <>
@@ -55,6 +69,11 @@ export const App: React.FC = () => {
               filter={filter}
               tempTodo={tempTodo}
               setLoading={setLoading}
+              loading={loading}
+              setIsUpdatingFor={setIsUpdatingFor}
+              updatingIds={updatingIds}
+              isUpdating={isUpdating}
+              setIsUpdating={setIsUpdating}
             />
             <Filter
               setErrorMessage={setErrorMessage}

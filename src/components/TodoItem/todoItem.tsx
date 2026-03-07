@@ -12,25 +12,19 @@ type Props = {
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  loading: boolean;
+  setIsUpdatingFor: (id: number, value: boolean) => void;
+  updatingIds: number[];
 };
 
 export const TodoItem: React.FC<Props> = ({
   posts,
   filter,
   setErrorMessage,
+  setIsUpdatingFor,
   setPosts,
+  updatingIds,
 }) => {
-  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
-
-  const setIsUpdatingFor = (id: number, value: boolean) =>
-    setUpdatingIds(prev => {
-      if (value) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
-
-      return prev.filter(x => x !== id);
-    });
-
   const visibleTodos = posts.filter(todos => {
     if (filter === 'completed') {
       return todos.completed;

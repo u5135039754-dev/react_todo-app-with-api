@@ -11,6 +11,11 @@ type Props = {
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setPosts: React.Dispatch<React.SetStateAction<Todos[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  loading: boolean;
+  setIsUpdatingFor: (id: number, value: boolean) => void;
+  updatingIds: number[];
+  setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>;
+  isUpdating: boolean;
 };
 export const Todo: React.FC<Props> = ({
   posts,
@@ -19,9 +24,12 @@ export const Todo: React.FC<Props> = ({
   filter,
   tempTodo,
   setLoading,
+  loading,
+  setIsUpdatingFor,
+  setIsUpdating,
+  updatingIds,
+  isUpdating,
 }) => {
-  const [isUpdating, setIsUpdating] = useState(false);
-
   return (
     <section className="todoapp__main" data-cy="TodoList">
       <TodoItem
@@ -33,6 +41,9 @@ export const Todo: React.FC<Props> = ({
         setLoading={setLoading}
         isUpdating={isUpdating}
         setIsUpdating={setIsUpdating}
+        loading={loading}
+        setIsUpdatingFor={setIsUpdatingFor}
+        updatingIds={updatingIds}
       />
       {tempTodo && (
         <div data-cy="Todo" key={0} className="todo">
