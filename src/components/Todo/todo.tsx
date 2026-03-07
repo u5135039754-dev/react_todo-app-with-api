@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState } from 'react';
+import React from 'react';
 import '../../styles/todo.scss';
 import { Filter, Todo as Todos } from '../../types/Todo';
 import { TodoItem } from '../TodoItem/todoItem';

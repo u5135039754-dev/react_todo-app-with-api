@@ -2,20 +2,20 @@ import '../../styles/todoapp.scss';
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import * as postService from '../../api/todos';
 import { USER_ID } from '../../api/todos';
-import { Todo } from '../../types/Todo';
+import { Filter as Filters, Todo as Todos } from '../../types/Todo';
 import React from 'react';
 import classNames from 'classnames';
+import { Todo } from '../Todo/todo';
+import { Filter } from '../Filter/filter';
 
 type Props = {
-  posts: Todo[];
-  setPosts: Dispatch<SetStateAction<Todo[]>>;
+  posts: Todos[];
+  setPosts: Dispatch<SetStateAction<Todos[]>>;
   loading: boolean;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-  setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
-  setIsUpdatingFor: (id: number, value: boolean) => void;
-  updatingIds: number[];
-  isUpdating: boolean;
+  setTempTodo: React.Dispatch<React.SetStateAction<Todos | null>>;
+  tempTodo: Todos | null;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const TodoApp: React.FC<Props> = ({
@@ -24,14 +24,29 @@ export const TodoApp: React.FC<Props> = ({
   loading,
   setErrorMessage,
   setTempTodo,
-  setIsUpdatingFor,
-  isUpdating,
+  setLoading,
+  tempTodo,
 }) => {
+  const hasTodos = posts.length > 0;
+  const [filter, setFilter] = useState<Filters>(Filters.all);
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
+  const [isTogglingAll, setIsTogglingAll] = useState(false);
   const [title, setTitle] = useState('');
   // const isTitleEmpty = title.trim() === '';
   const allCompleted = posts.length > 0 && posts.every(post => post.completed);
   const hasPosts = posts.length > 0;
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const setIsUpdatingFor = (id: number, value: boolean) =>
+    setUpdatingIds(prev => {
+      if (value) {
+        return prev.includes(id) ? prev : [...prev, id];
+      }
+
+      return prev.filter(x => x !== id);
+    });
 
   const prevTodosCount = useRef(posts.length);
 
@@ -76,13 +91,18 @@ export const TodoApp: React.FC<Props> = ({
     }
   }
 
-  const handleToggleAll = async (id: number) => {
+  const handleToggleAll = async () => {
+    setErrorMessage('');
     const shouldCompleteAll = !posts.every(todo => todo.completed);
     const idsToUpdate = posts
-      .filter(todo => todo.completed !== shouldCompleteAll)
-      .map(todo => todo.id);
+      .filter(t => t.completed !== shouldCompleteAll)
+      .map(t => t.id);
 
-    setIsUpdatingFor(id, true);
+    if (idsToUpdate.length === 0) {
+      return;
+    }
+
+    setIsTogglingAll(true);
     try {
       const updatedTodos = await Promise.all(
         idsToUpdate.map(i =>
@@ -90,15 +110,13 @@ export const TodoApp: React.FC<Props> = ({
         ),
       );
 
-      setPosts(post =>
-        post.map(
-          todo => updatedTodos.find(updated => updated.id === todo.id) || todo,
-        ),
+      setPosts(prev =>
+        prev.map(todo => updatedTodos.find(u => u.id === todo.id) || todo),
       );
     } catch {
       setErrorMessage('Unable to update a todo');
     } finally {
-      setIsUpdatingFor(id, false);
+      setIsTogglingAll(false);
     }
   };
 
@@ -115,7 +133,7 @@ export const TodoApp: React.FC<Props> = ({
           <button
             type="button"
             disabled={loading}
-            onClick={() => handleToggleAll}
+            onClick={handleToggleAll}
             className={`todoapp__toggle-all${allCompleted ? ' active' : ''}`}
             data-cy="ToggleAllButton"
           />
@@ -133,16 +151,44 @@ export const TodoApp: React.FC<Props> = ({
             placeholder="What needs to be done?"
           />
         </form>
-        <div
-          data-cy="TodoLoader"
-          className={classNames('modal overlay', {
-            'is-active': isUpdating,
-          })}
-        >
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
       </header>
+      <main className="todoapp__main">
+        {hasTodos && (
+          <>
+            <Todo
+              posts={posts}
+              setErrorMessage={setErrorMessage}
+              setPosts={setPosts}
+              filter={filter}
+              tempTodo={tempTodo}
+              setLoading={setLoading}
+              loading={loading}
+              setIsUpdatingFor={setIsUpdatingFor}
+              updatingIds={updatingIds}
+              isUpdating={isUpdating}
+              setIsUpdating={setIsUpdating}
+            />
+            <Filter
+              setErrorMessage={setErrorMessage}
+              posts={posts}
+              filter={filter}
+              setPosts={setPosts}
+              setFilter={setFilter}
+              setLoading={setLoading}
+              loading={loading}
+            />
+          </>
+        )}
+        {isTogglingAll && (
+          <div
+            data-cy="TodoLoader"
+            className={classNames('modal overlay is-active')}
+          >
+            <div className="modal-background has-background-white-ter" />
+            <div className="loader" />
+          </div>
+        )}
+      </main>
     </>
   );
 };

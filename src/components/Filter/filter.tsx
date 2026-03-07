@@ -3,6 +3,7 @@ import { Filter as Filters, Todo } from '../../types/Todo';
 import { Dispatch, SetStateAction } from 'react';
 import React from 'react';
 import * as postService from '../../api/todos';
+import classNames from 'classnames';
 
 type Props = {
   posts: Todo[];
@@ -11,6 +12,7 @@ type Props = {
   setFilter: React.Dispatch<React.SetStateAction<Filters>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  loading: boolean;
 };
 
 const items: Filters[] = [Filters.all, Filters.active, Filters.completed];
@@ -22,6 +24,7 @@ export const Filter: React.FC<Props> = ({
   setErrorMessage,
   setLoading,
   filter,
+  loading,
 }) => {
   const anyCompleted = posts.some(post => post.completed);
   const todosCounter = posts.filter(post => !post.completed);
@@ -85,6 +88,15 @@ export const Filter: React.FC<Props> = ({
         Clear completed
       </button>
       {/* ) : null} */}
+      {loading && (
+        <div
+          data-cy="TodoLoader"
+          className={classNames('modal overlay is-active')}
+        >
+          <div className="modal-background has-background-white-ter" />
+          <div className="loader" />
+        </div>
+      )}
     </footer>
   );
 };
